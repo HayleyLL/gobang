@@ -1,38 +1,45 @@
-.App {
-  text-align: center;
+* {
+  box-sizing: border-box;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+html,
+body {
+  height: 100%;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+#root {
+  height: 100%;
+  background-color: #9dd3e9;
+  background-image: url(./assets/0.jpg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  padding: 40px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+/* .game-board {
+  width: 50%;
+  min-width: 500px;
 }
 
-.App-link {
-  color: #61dafb;
+.game-board div {
+  width: 100%;
+  padding-bottom: 80%;
+  position: relative;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.game-board div div {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  outline: 1px solid darkblue;
 }
+
+/* 只套两层div，canvas无法自适应，因此多加一层*/
+/* .game-board #board {
+  width: 100%;
+  height: 100%;
+  outline: 1px solid blueviolet;
+}  */
