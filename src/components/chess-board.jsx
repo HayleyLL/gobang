@@ -28,19 +28,20 @@ class ChessBoard extends Component {
       isBlackTurn: true,
       win: false,
       status: "",
+      currentPosition: null,
     };
   }
 
   handleCvsClick = (e) => {
-    const boardCvs = this.boardRef.current;
-    const boardCtx = boardCvs.getContext("2d");
+    const boardCtx = this.boardRef.current.getContext("2d");
     const movCvs = this.movCvsRef.current;
     const { cellSize, chessR } = this;
-    const { padding, isBlackTurn, win } = this.state;
+    const { isBlackTurn, win } = this.state;
     const data = [...this.state.data];
 
-    const chessPos = calcChessCoords(movCvs, e, padding, cellSize);
+    const chessPos = calcChessCoords(movCvs, e, this.padding, cellSize);
     const { xNum: column, yNum: row } = chessPos;
+    const currentPosition = { x: chessPos.x, y: chessPos.y };
     if (data[row][column] !== 0 || win) {
       return;
     }
@@ -54,17 +55,32 @@ class ChessBoard extends Component {
       isBlackTurn: !state.isBlackTurn,
     }));
 
+    let winner = null;
     if (checkWinner(row, column, data)) {
       let status = "";
-      isBlackTurn ? (status = "黑棋胜利！") : (status = "白棋胜利！");
+      if (isBlackTurn) {
+        status = "黑棋胜利！";
+        winner = "黑棋";
+      } else {
+        status = "白棋胜利！";
+        winner = "白棋";
+      }
       this.setState({ win: true, status });
-
-      setTimeout(function () {
-        alert(status);
-      }, 0);
+      console.log(`winner: ${winner}`);
     }
 
+    console.log(currentPosition, currentPlayer, winner);
     //ajax
+    axios({
+      method: "put",
+      url: "localhost:3000/put_chess",
+      data: {
+        currentPosition,
+        winner,
+      },
+    }).catch(function (error) {
+      console.log(error);
+    });
   };
 
   handleMouseMove = (e) => {
@@ -87,10 +103,39 @@ class ChessBoard extends Component {
     }
   };
 
-  componentDidMount() {
-    const { cellSize, padding, cells, size } = this;
-    this.setState({ padding });
+  //ajax
+  drawRivalChess = () => {
+    const { cellSize, padding, cells, size, chessR } = this;
     drawBoard(this.boardRef.current, padding, cellSize, cells, size);
+    const boardCtx = this.boardRef.current.getContext("2d");
+
+    axios({
+      method: "get",
+      url: "localhost:3001/room",
+    }).then(function (response) {
+      const { currentPosition: prevPosition, isBlackTurn } = this.state;
+      const roomData = response.room[0];
+      const { currentPosition, winner } = roomData;
+
+      if (currentPosition !== null) {
+        if (
+          currentPosition.x === prevPosition.x &&
+          currentPosition.y === prevPosition.y
+        ) {
+          return;
+        } else {
+          this.setState({ currentPosition });
+          drawChess(boardCtx, currentPosition, chessR, isBlackTurn);
+          if (winner !== null) {
+            alert(winner);
+          }
+        }
+      } else return;
+    });
+  };
+
+  componentDidMount() {
+    this.drawRivalChess();
   }
 
   render() {
