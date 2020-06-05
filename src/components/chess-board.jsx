@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import axios from "axios";
+import Cookies from "js-cookies";
 import {
   drawBoard,
   drawChess,
@@ -22,17 +23,18 @@ class ChessBoard extends Component {
     this.boardRef = React.createRef();
     this.movCvsRef = React.createRef();
     this.feedBRef = React.createRef();
+    this.playerId = Cookies.get("playerId");
 
     this.state = {
       data: [...Array(cells + 1)].map((x) => Array(cells + 1).fill(0)),
       blackHolder: "",
+      whiteHolder: "",
       isBlackTurn: true,
-      currentPlayer: "",
       winner: null,
     };
   }
 
-  changeChessStatus = (isBlackTurn, chessPos, currentPlayer, blackHolder) => {
+  changeChessStatus = (isBlackTurn, chessPos) => {
     const data = [...this.state.data];
     const { xNum: column, yNum: row } = chessPos;
     const boardCtx = this.boardRef.current.getContext("2d");
@@ -40,30 +42,30 @@ class ChessBoard extends Component {
     drawChess(boardCtx, chessPos, this.chessR, isBlackTurn);
     data[row][column] = isBlackTurn ? 1 : 2;
 
-    isBlackTurn = currentPlayer === blackHolder ? false : true; //?
-    this.setState({ isBlackTurn, data });
+    this.setState({ isBlackTurn: !isBlackTurn, data });
+    return data;
   };
 
   handleCvsClick = (e) => {
     const movCvs = this.movCvsRef.current;
-    const { isBlackTurn, winner, currentPlayer } = this.state;
+    const { padding, cellSize, playerId } = this;
+    const { isBlackTurn, winner, data } = this.state;
 
-    const { cellSize } = this;
-    const chessPos = calcChessCoords(movCvs, e, this.padding, cellSize);
+    const chessPos = calcChessCoords(movCvs, e, padding, cellSize);
     const { xNum: column, yNum: row } = chessPos;
 
     if (
-      playerId !== currentPlayer ||
-      this.state.data[row][column] !== 0 ||
+      (playerId === blackHolder && !isBlackTurn) ||
+      (playerId === whiteHolder && isBlackTurn) ||
+      data[row][column] !== 0 ||
       winner
     ) {
       return;
     }
 
     clearChess(movCvs);
-    this.changeChessStatus(isBlackTurn, chessPos);
+    const newData = this.changeChessStatus(isBlackTurn, chessPos);
 
-    winner = null; //?
     if (checkWinner(row, column, data)) {
       winner = isBlackTurn ? "黑棋" : "白棋";
       this.setState({ winner });
@@ -75,22 +77,34 @@ class ChessBoard extends Component {
       method: "put",
       url: "localhost:3001/put_chess",
       data: {
-        currentPosition: chessPos,
+        chessData: newData,
         winner,
       },
     }).catch(function (error) {
       console.log(error);
     });
+
+    if (winner !== null) {
+      setTimeout(function () {
+        alert(winner);
+      }, 0);
+    }
   };
 
   handleMouseMove = (e) => {
     const movCvs = this.movCvsRef.current;
-    const { size, chessR, padding } = this;
+    const { size, chessR, padding, playerId } = this;
     const { isBlackTurn, winner } = this.state;
     const mousePos = calcMousePos(movCvs, e);
     const { x, y } = mousePos;
 
-    if (winner) return;
+    if (
+      winner ||
+      (playerId === blackHolder && !isBlackTurn) ||
+      (playerId === whiteHolder && isBlackTurn)
+    ) {
+      return;
+    }
 
     if (
       x >= padding &&
@@ -98,13 +112,8 @@ class ChessBoard extends Component {
       y >= padding &&
       y <= size - padding
     ) {
-      if (
-        (isBlackTurn && playerId === "a") ||
-        (isBlackTurn && playerId === "b")
-      ) {
-        movChess(movCvs, chessR, x, y, isBlackTurn);
-      }
-    } else return;
+      movChess(movCvs, chessR, x, y, isBlackTurn);
+    }
   };
 
   //ajax
@@ -114,21 +123,15 @@ class ChessBoard extends Component {
 
     axios({
       method: "get",
-      url: "localhost:3001/room",
+      url: "localhost:3001/rooms",
     }).then(function (response) {
       const { isBlackTurn } = this.state;
-      const roomData = response.room[0];
-      const { blackHolder, currentPlayer, currentPosition, winner } = roomData;
+      const { winner, chessData } = response;
 
-      changeChessStatus(
-        isBlackTurn,
-        currentPosition,
-        currentPlayer,
-        blackHolder
-      );
+      changeChessStatus(isBlackTurn, blackHolder);
       that.setState({
-        currentPlayer,
         winner,
+        chessData,
       });
 
       if (currentPosition !== null && data[column][row] === 0) {
@@ -145,19 +148,21 @@ class ChessBoard extends Component {
     const { cellSize, padding, cells, size, chessR } = this;
     drawBoard(this.boardRef.current, padding, cellSize, cells, size);
 
-    //ajax设置blackHolder
+    //ajax
     axios({
       method: "get",
-      url: "localhost:3001/room",
+      url: "localhost:3001/rooms",
     }).then(function (response) {
-      const roomData = response.room[0];
-      this.setState({ blackHolder: roomData.blackHolder });
+      const { blackHolder, whiteHolder } = response;
+      this.setState({ blackHolder, whiteHolder });
     });
 
-    //轮询
-    // setInterval(() => {
-    //   this.drawRivalChess(chessR);
-    // }, 100);
+    if (!this.state.winner) {
+      // 轮询
+      // setInterval(() => {
+      this.drawRivalChess(chessR);
+      // }, 100);
+    }
   }
 
   render() {
