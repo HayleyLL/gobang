@@ -1,32 +1,20 @@
 import React, { Component } from "react";
 import axios from "axios";
 import Cookies from "js-cookies";
-import {
-  drawBoard,
-  drawChess,
-  calcChessCoords,
-  calcMousePos,
-  movChess,
-  clearChess,
-} from "../utils/draw";
+import Board from "../utils/draw";
 import { checkWinner } from "../utils/judge";
 
 class ChessBoard extends Component {
   constructor(props) {
     super(props);
     const { cells, padding, cellSize, chessR } = props;
-    this.size = cells * cellSize + 2 * padding;
-    this.chessR = chessR;
-    this.cells = cells;
-    this.padding = padding;
-    this.cellSize = cellSize;
+    this.board = new Board(padding, cellSize, cells, chessR);
     this.boardRef = React.createRef();
     this.movCvsRef = React.createRef();
     this.feedBRef = React.createRef();
-    this.playerId = Cookies.get("playerId");
-
+    this.playerId = Cookies.getItem("playerId");
+    this.data = [...Array(cells + 1)].map((x) => Array(cells + 1).fill(0));
     this.state = {
-      data: [...Array(cells + 1)].map((x) => Array(cells + 1).fill(0)),
       blackHolder: "",
       whiteHolder: "",
       isBlackTurn: true,
@@ -35,139 +23,157 @@ class ChessBoard extends Component {
   }
 
   changeChessStatus = (isBlackTurn, chessPos) => {
-    const data = [...this.state.data];
+    const data = [...this.data];
     const { xNum: column, yNum: row } = chessPos;
     const boardCtx = this.boardRef.current.getContext("2d");
 
-    drawChess(boardCtx, chessPos, this.chessR, isBlackTurn);
+    this.board.drawChess(
+      boardCtx,
+      chessPos,
+      this.playerId === this.state.blackHolder ? "black" : "white"
+    );
     data[row][column] = isBlackTurn ? 1 : 2;
 
-    this.setState({ isBlackTurn: !isBlackTurn, data });
+    this.setState({ data });
     return data;
   };
 
   handleCvsClick = (e) => {
     const movCvs = this.movCvsRef.current;
-    const { padding, cellSize, playerId } = this;
-    const { isBlackTurn, winner, data } = this.state;
+    const { board, playerId, data } = this;
+    let { isBlackTurn, winner, blackHolder, whiteHolder } = this.state;
 
-    const chessPos = calcChessCoords(movCvs, e, padding, cellSize);
+    const chessPos = board.calcChessCoords(movCvs, e);
     const { xNum: column, yNum: row } = chessPos;
-
     if (
-      (playerId === blackHolder && !isBlackTurn) ||
-      (playerId === whiteHolder && isBlackTurn) ||
-      data[row][column] !== 0 ||
-      winner
+      !(
+        (playerId === blackHolder &&
+          isBlackTurn &&
+          data[row][column] === 0 &&
+          winner === null) ||
+        (playerId === whiteHolder &&
+          !isBlackTurn &&
+          data[row][column] === 0 &&
+          winner === null)
+      )
     ) {
       return;
     }
 
-    clearChess(movCvs);
+    board.clearChess(movCvs);
     const newData = this.changeChessStatus(isBlackTurn, chessPos);
 
     if (checkWinner(row, column, data)) {
       winner = isBlackTurn ? "黑棋" : "白棋";
-      this.setState({ winner });
+      this.setState({ winner, isBlackTurn: !isBlackTurn });
       console.log(`winner: ${winner}`);
     }
 
     //ajax
     axios({
       method: "put",
-      url: "localhost:3001/put_chess",
+      url: "http://192.168.1.9:3001/put_chess",
+      withCredentials: true, // default
       data: {
-        chessData: newData,
+        data: newData,
         winner,
       },
     }).catch(function (error) {
-      console.log(error);
+      console.log(error.response.data.error.message);
     });
-
-    if (winner !== null) {
-      setTimeout(function () {
-        alert(winner);
-      }, 0);
-    }
   };
 
   handleMouseMove = (e) => {
     const movCvs = this.movCvsRef.current;
-    const { size, chessR, padding, playerId } = this;
-    const { isBlackTurn, winner } = this.state;
-    const mousePos = calcMousePos(movCvs, e);
+    const { size, chessR, padding, playerId, board } = this;
+    const { isBlackTurn, winner, blackHolder, whiteHolder } = this.state;
+    const mousePos = board.calcMousePos(movCvs, e);
     const { x, y } = mousePos;
 
     if (
-      winner ||
-      (playerId === blackHolder && !isBlackTurn) ||
-      (playerId === whiteHolder && isBlackTurn)
+      !(playerId === blackHolder && isBlackTurn && winner === null) ||
+      !(playerId === whiteHolder && !isBlackTurn && winner === null)
     ) {
       return;
     }
 
-    if (
-      x >= padding &&
-      x <= size - padding &&
-      y >= padding &&
-      y <= size - padding
-    ) {
-      movChess(movCvs, chessR, x, y, isBlackTurn);
+    if (this.board.includePoint(x, y)) {
+      board.movChess(
+        movCvs,
+        x,
+        y,
+        blackHolder === playerId ? "black" : "white"
+      );
+    } else {
+      board.clearChess(movCvs);
     }
   };
 
   //ajax
-  drawRivalChess = (chessR) => {
-    const boardCtx = this.boardRef.current.getContext("2d");
+  drawRivalChess = () => {
     let that = this;
 
     axios({
       method: "get",
-      url: "localhost:3001/rooms",
+      url: "http://192.168.1.9:3001/rooms",
+      withCredentials: true, // default
     }).then(function (response) {
-      const { isBlackTurn } = this.state;
-      const { winner, chessData } = response;
+      const { winner, chessData, isBlackTurn } = response.data;
 
-      changeChessStatus(isBlackTurn, blackHolder);
-      that.setState({
-        winner,
-        chessData,
-      });
+      if (chessData !== null || winner) {
+        that.setState({
+          winner,
+          isBlackTurn,
+        });
+        that.data = chessData;
+        const boardCtx = that.boardRef.current.getContext("2d");
+        that.board.drawAllChess(chessData, boardCtx);
 
-      if (currentPosition !== null && data[column][row] === 0) {
-        drawChess(boardCtx, currentPosition, chessR, isBlackTurn);
-
-        if (winner !== null) {
-          alert(winner);
+        if (winner) {
+          console.log(winner);
         }
       }
     });
   };
-
   componentDidMount() {
-    const { cellSize, padding, cells, size, chessR } = this;
-    drawBoard(this.boardRef.current, padding, cellSize, cells, size);
+    const { cellSize, padding, cells, size, board } = this;
+    board.drawBoard(this.boardRef.current);
+    let that = this;
 
-    //ajax
+    // ajax
     axios({
       method: "get",
-      url: "localhost:3001/rooms",
+      url: "http://192.168.1.9:3001/rooms",
+      withCredentials: true, // default
     }).then(function (response) {
-      const { blackHolder, whiteHolder } = response;
-      this.setState({ blackHolder, whiteHolder });
+      const {
+        blackHolder,
+        whiteHolder,
+        chessData,
+        isBlackTurn,
+      } = response.data;
+      console.log(blackHolder, whiteHolder);
+      const newChessData =
+        chessData || [...Array(cells + 1)].map((x) => Array(cells + 1).fill(0));
+      const boardCtx = that.boardRef.current.getContext("2d");
+      that.board.drawAllChess(chessData, boardCtx);
+      that.setState({
+        blackHolder,
+        whiteHolder,
+        isBlackTurn,
+      });
     });
 
     if (!this.state.winner) {
       // 轮询
-      // setInterval(() => {
-      this.drawRivalChess(chessR);
-      // }, 100);
+      setInterval(() => {
+        this.drawRivalChess();
+      }, 2000);
     }
   }
 
   render() {
-    const { size } = this;
-
+    const size = this.board.size;
     return (
       <>
         <div className="feedBack" ref={this.feedBRef}></div>
