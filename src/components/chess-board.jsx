@@ -14,10 +14,10 @@ class ChessBoard extends Component {
     this.feedBRef = React.createRef();
     this.playerId = Cookies.getItem("playerId");
     this.data = [...Array(cells + 1)].map((x) => Array(cells + 1).fill(0));
+    this.isBlackTurn = true;
     this.state = {
       blackHolder: "",
       whiteHolder: "",
-      isBlackTurn: true,
       winner: null,
     };
   }
@@ -33,79 +33,78 @@ class ChessBoard extends Component {
       this.playerId === this.state.blackHolder ? "black" : "white"
     );
     data[row][column] = isBlackTurn ? 1 : 2;
-
-    this.setState({ data });
+    this.data = data;
+    this.isBlackTurn = !isBlackTurn;
     return data;
   };
 
   handleCvsClick = (e) => {
     const movCvs = this.movCvsRef.current;
-    const { board, playerId, data } = this;
-    let { isBlackTurn, winner, blackHolder, whiteHolder } = this.state;
-
+    const { board, playerId, data, isBlackTurn } = this;
+    let { winner, blackHolder, whiteHolder } = this.state;
     const chessPos = board.calcChessCoords(movCvs, e);
     const { xNum: column, yNum: row } = chessPos;
     if (
-      !(
-        (playerId === blackHolder &&
-          isBlackTurn &&
-          data[row][column] === 0 &&
-          winner === null) ||
-        (playerId === whiteHolder &&
-          !isBlackTurn &&
-          data[row][column] === 0 &&
-          winner === null)
-      )
+      (playerId === blackHolder &&
+        isBlackTurn &&
+        data[row][column] === 0 &&
+        winner === null) ||
+      (playerId === whiteHolder &&
+        !isBlackTurn &&
+        data[row][column] === 0 &&
+        winner === null)
     ) {
+      board.clearChess(movCvs);
+      const newData = this.changeChessStatus(isBlackTurn, chessPos);
+      if (checkWinner(row, column, data)) {
+        winner = isBlackTurn ? "黑棋" : "白棋";
+        this.setState({ winner });
+        console.log(`winner: ${winner}`);
+      }
+
+      //ajax
+      const that = this;
+      axios({
+        method: "put",
+        url: "http://192.168.1.9:3001/put_chess",
+        withCredentials: true,
+        data: {
+          data: newData,
+          winner,
+        },
+      })
+        .then(function () {})
+        .catch(function (error) {
+          console.log(error.response.data.error.message);
+        });
+    } else {
       return;
     }
-
-    board.clearChess(movCvs);
-    const newData = this.changeChessStatus(isBlackTurn, chessPos);
-
-    if (checkWinner(row, column, data)) {
-      winner = isBlackTurn ? "黑棋" : "白棋";
-      this.setState({ winner, isBlackTurn: !isBlackTurn });
-      console.log(`winner: ${winner}`);
-    }
-
-    //ajax
-    axios({
-      method: "put",
-      url: "http://192.168.1.9:3001/put_chess",
-      withCredentials: true, // default
-      data: {
-        data: newData,
-        winner,
-      },
-    }).catch(function (error) {
-      console.log(error.response.data.error.message);
-    });
   };
 
   handleMouseMove = (e) => {
     const movCvs = this.movCvsRef.current;
-    const { size, chessR, padding, playerId, board } = this;
-    const { isBlackTurn, winner, blackHolder, whiteHolder } = this.state;
+    const { playerId, board, isBlackTurn } = this;
+    const { winner, blackHolder, whiteHolder } = this.state;
     const mousePos = board.calcMousePos(movCvs, e);
     const { x, y } = mousePos;
 
     if (
-      !(playerId === blackHolder && isBlackTurn && winner === null) ||
-      !(playerId === whiteHolder && !isBlackTurn && winner === null)
+      (playerId === blackHolder && isBlackTurn && winner === null) ||
+      (playerId === whiteHolder && !isBlackTurn && winner === null)
     ) {
-      return;
-    }
-
-    if (this.board.includePoint(x, y)) {
-      board.movChess(
-        movCvs,
-        x,
-        y,
-        blackHolder === playerId ? "black" : "white"
-      );
+      if (this.board.includePoint(x, y)) {
+        board.movChess(
+          movCvs,
+          x,
+          y,
+          blackHolder === playerId ? "black" : "white"
+        );
+      } else {
+        board.clearChess(movCvs);
+      }
     } else {
-      board.clearChess(movCvs);
+      return;
     }
   };
 
@@ -120,11 +119,11 @@ class ChessBoard extends Component {
     }).then(function (response) {
       const { winner, chessData, isBlackTurn } = response.data;
 
-      if (chessData !== null || winner) {
+      if (chessData) {
         that.setState({
           winner,
-          isBlackTurn,
         });
+        that.isBlackTurn = isBlackTurn;
         that.data = chessData;
         const boardCtx = that.boardRef.current.getContext("2d");
         that.board.drawAllChess(chessData, boardCtx);
@@ -136,7 +135,7 @@ class ChessBoard extends Component {
     });
   };
   componentDidMount() {
-    const { cellSize, padding, cells, size, board } = this;
+    const { cells, board, data } = this;
     board.drawBoard(this.boardRef.current);
     let that = this;
 
@@ -152,16 +151,15 @@ class ChessBoard extends Component {
         chessData,
         isBlackTurn,
       } = response.data;
-      console.log(blackHolder, whiteHolder);
-      const newChessData =
-        chessData || [...Array(cells + 1)].map((x) => Array(cells + 1).fill(0));
+      const newChessData = chessData || data;
+      that.data = newChessData;
       const boardCtx = that.boardRef.current.getContext("2d");
-      that.board.drawAllChess(chessData, boardCtx);
+      that.board.drawAllChess(newChessData, boardCtx);
       that.setState({
         blackHolder,
         whiteHolder,
-        isBlackTurn,
       });
+      that.isBlackTurn = isBlackTurn;
     });
 
     if (!this.state.winner) {
