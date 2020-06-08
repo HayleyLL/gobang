@@ -10,6 +10,7 @@ class ChessBoard extends Component {
     const { cells, padding, cellSize, chessR } = props;
     this.board = new Board(padding, cellSize, cells, chessR);
     this.boardRef = React.createRef();
+    this.chessDropRef = React.createRef();
     this.movCvsRef = React.createRef();
     this.feedBRef = React.createRef();
     this.playerId = Cookies.getItem("playerId");
@@ -25,10 +26,10 @@ class ChessBoard extends Component {
   changeChessStatus = (isBlackTurn, chessPos) => {
     const data = [...this.data];
     const { xNum: column, yNum: row } = chessPos;
-    const boardCtx = this.boardRef.current.getContext("2d");
+    const chessDropCtx = this.chessDropRef.current.getContext("2d");
 
     this.board.drawChess(
-      boardCtx,
+      chessDropCtx,
       chessPos,
       this.playerId === this.state.blackHolder ? "black" : "white"
     );
@@ -125,8 +126,9 @@ class ChessBoard extends Component {
         });
         that.isBlackTurn = isBlackTurn;
         that.data = chessData;
-        const boardCtx = that.boardRef.current.getContext("2d");
-        that.board.drawAllChess(chessData, boardCtx);
+        const chessDropCvs = that.chessDropRef.current;
+        that.board.clearChess(chessDropCvs);
+        that.board.drawAllChess(chessData, chessDropCvs.getContext("2d"));
 
         if (winner) {
           console.log(winner);
@@ -150,23 +152,25 @@ class ChessBoard extends Component {
         whiteHolder,
         chessData,
         isBlackTurn,
+        winner,
       } = response.data;
       const newChessData = chessData || data;
       that.data = newChessData;
-      const boardCtx = that.boardRef.current.getContext("2d");
-      that.board.drawAllChess(newChessData, boardCtx);
+      const chessDropCtx = that.chessDropRef.current.getContext("2d");
+      that.board.drawAllChess(newChessData, chessDropCtx);
       that.setState({
         blackHolder,
         whiteHolder,
+        winner,
       });
       that.isBlackTurn = isBlackTurn;
     });
 
     if (!this.state.winner) {
       // 轮询
-      setInterval(() => {
-        this.drawRivalChess();
-      }, 2000);
+      // setInterval(() => {
+      this.drawRivalChess();
+      // }, 2000);
     }
   }
 
@@ -180,11 +184,18 @@ class ChessBoard extends Component {
             您的浏览器版本过低，请升级游览器！
           </canvas>
           <canvas
-            id="moving"
-            ref={this.movCvsRef}
+            id="chess-dropping"
+            ref={this.chessDropRef}
             width={size}
             height={size}
             style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
+          />
+          <canvas
+            id="chess-moving"
+            ref={this.movCvsRef}
+            width={size}
+            height={size}
+            style={{ position: "absolute", top: 0, left: 0, zIndex: 2 }}
             onClick={this.handleCvsClick}
             onMouseMove={this.handleMouseMove}
           />
