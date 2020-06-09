@@ -1,4 +1,4 @@
-export default function Board(padding, cellSize, cells, chessR) {
+export default function Drawer(padding, cellSize, cells, chessR) {
   this.padding = padding;
   this.cellSize = cellSize;
   this.cells = cells;
@@ -20,6 +20,7 @@ export default function Board(padding, cellSize, cells, chessR) {
       }
     }
   };
+
   //role: black/white/none
   this.drawChess = function (ctx, coords, role) {
     const { x, y } = coords;
@@ -39,7 +40,11 @@ export default function Board(padding, cellSize, cells, chessR) {
     ctx.closePath();
   };
 
-  this.calcMousePos = function (canvas, e) {
+  // this.calcMousePosInWindow = function (e) {
+  //   return { x: e.clientX, y: e.clientY };
+  // };
+
+  this.calcMouseCoords = function (canvas, e) {
     const cvsPos = canvas.getBoundingClientRect();
     const { clientX, clientY } = e;
     const x = Math.round(clientX - cvsPos.left);
@@ -48,7 +53,7 @@ export default function Board(padding, cellSize, cells, chessR) {
   };
 
   this.calcChessCoords = function (canvas, e) {
-    const { x, y } = this.calcMousePos(canvas, e);
+    const { x, y } = this.calcMouseCoords(canvas, e);
     let xNum = Math.floor((x - padding) / cellSize + 1 / 2);
     let yNum = Math.floor((y - padding) / cellSize + 1 / 2);
     let chessPos = {
@@ -59,19 +64,22 @@ export default function Board(padding, cellSize, cells, chessR) {
     };
     return chessPos;
   };
+
   this.clearChess = function (canvas) {
     const ctx = canvas.getContext("2d");
     const w = canvas.width;
     const h = canvas.height;
     ctx.clearRect(0, 0, w, h);
   };
+
   this.movChess = function (canvas, x, y, role) {
     const ctx = canvas.getContext("2d");
     this.clearChess(canvas);
     this.drawChess(ctx, { x, y }, role);
   };
 
-  this.drawAllChess = function (chessData, ctx) {
+  this.drawAllChess = function (chessData, canvas) {
+    const ctx = canvas.getContext("2d");
     const calcPos = (xNum, yNum) => {
       return {
         x: xNum * cellSize + padding,
@@ -94,7 +102,7 @@ export default function Board(padding, cellSize, cells, chessR) {
     }
   };
 
-  this.includePoint = function (x, y) {
+  this.isMouseWithinBoard = function (x, y) {
     return (
       x >= this.padding &&
       x <= this.size - this.padding &&
