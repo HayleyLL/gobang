@@ -1,8 +1,5 @@
 export default function Drawer(padding, cellSize, cells, chessR) {
   this.padding = padding;
-  this.cellSize = cellSize;
-  this.cells = cells;
-  this.chessR = chessR;
   this.size = cells * cellSize + 2 * padding;
 
   this.drawBoard = function (canvas) {
@@ -56,13 +53,12 @@ export default function Drawer(padding, cellSize, cells, chessR) {
     const { x, y } = this.calcMouseCoords(canvas, e);
     let xNum = Math.floor((x - padding) / cellSize + 1 / 2);
     let yNum = Math.floor((y - padding) / cellSize + 1 / 2);
-    let chessPos = {
+    return {
       x: xNum * cellSize + padding,
       y: yNum * cellSize + padding,
       xNum,
       yNum,
     };
-    return chessPos;
   };
 
   this.clearChess = function (canvas) {
@@ -88,7 +84,7 @@ export default function Drawer(padding, cellSize, cells, chessR) {
     };
 
     for (let i in chessData) {
-      for (let j in chessData[i]) {
+      for (let j in chessData[0]) {
         if (chessData[i][j] === 0) {
           continue;
         }

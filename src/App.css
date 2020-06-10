@@ -1,41 +1,83 @@
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
+    padding:0;
+    margin:0;
 }
 
 html,
 body {
-  height: 100%;
+    height: 100%;
 }
 
 #root {
-  height: 100%;
-  background-color: #9dd3e9;
-  background-image: url(./assets/0.jpg);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
-  padding: 40px;
+    height: 100%;
+    background-color: #9dd3e9;
+    background-image: url(./assets/0.jpg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    padding: 40px;
+}
+
+.App{
+    height:100%;
 }
 
 .feedback {
-  display: none;
+    display: none;
 }
 
 .win-feedback {
-  display: table;
-  height: 80px;
-  color: rgb(240, 53, 84);
-  text-align: center;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3;
-  background: linear-gradient(to right, #e66465, transparent 50%, #e66465);
-  border-radius: 10px;
+    display: table;
+    height: 80px;
+    color: rgb(240, 53, 84);
+    text-align: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    background: linear-gradient(to right, #e66465, transparent 50%, #e66465);
+    border-radius: 10px;
+    -moz-animation-duration: 1s;
+    -webkit-animation-duration: 1s;
+    animation-duration: 1s;
+    -moz-animation-name: spread;
+    -webkit-animation-name: spread;
+    animation-name: spread;
+    -webkit-animation-fill-mode: forwards;
+    -moz-animation-fill-mode: forwards;
+    animation-fill-mode: forwards;
+}
+
+@keyframes spread {
+    from {
+        width: 0;
+    }
+    to {
+        width: 80%;
+    }
+}
+
+@-moz-keyframes spread {
+    from {
+        width: 0;
+    }
+    to {
+        width: 80%;
+    }
+}
+
+@-webkit-keyframes spread {
+  from {
+    width: 0;
+  }
+  to {
+    width: 80%;
+  }
 }
 
 .win-feedback-content {
-  display: table-cell;
-  vertical-align: middle;
+    display: table-cell;
+    vertical-align: middle;
 }
