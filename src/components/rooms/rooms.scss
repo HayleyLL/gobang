@@ -23,16 +23,11 @@
       flex-direction: row;
       border-bottom: 1px solid #ad8282;
       flex: 0 0 50px;
+      justify-content: space-between;
 
       .room-cell{
         display: flex;
         flex-direction: column;
-        flex:2 1 auto;
-
-      }
-
-      .room-id{
-        flex:1 1 auto;
       }
     }
   }

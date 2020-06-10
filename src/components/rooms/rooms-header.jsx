@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
-import {Link} from 'react-router-dom'
+import {withRouter} from 'react-router-dom'
 import axios from 'axios';
 import {Button} from 'antd';
+import Cookies from "js-cookies";
 import {baseUrl} from "../../end-point/httpRqst";
 
 
@@ -20,18 +21,24 @@ class RoomsHeader extends Component {
                 method: 'put',
                 url: `${baseUrl}/put_room`,
                 withCredentials: true
-            })
+            }).then((resp) => {
+            // this.playerId = Cookies.getItem('playerId');
+            const {roomId}=resp.data.roomInfo;
+            this.props.history.push(`/${roomId}`)
+        }).catch((er) => {
+            console.error(er)
+        })
     }
 
     render() {
         return (
             <div className='rooms-header'>
                 <Button onClick={this.handleCreateRoomClick}>
-                    <Link to='/pl'>创建新房间 </Link>
+                    创建新房间
                 </Button>
             </div>
         );
     }
 }
 
-export default RoomsHeader;
+export default withRouter(RoomsHeader);
