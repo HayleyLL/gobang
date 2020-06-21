@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import axios from "axios";
 import {Button} from 'antd'
 import {baseUrl} from "../../end-point/httpRqst";
+import {withRouter} from "react-router-dom";
 
 class RoomsBody extends Component {
     constructor(props) {
@@ -21,9 +22,10 @@ class RoomsBody extends Component {
         ).then(
             (resp) => {
                 console.log(resp.data);
-                this.props.history.push(`/${roomId}`)
+                this.props.history.push(`/rooms/${roomId}`)
             }
-        ).catch(
+        )
+    .catch(
             (er) => {
                 console.error(er);
             }
@@ -54,9 +56,9 @@ class RoomsBody extends Component {
                     <div className=' room-cell'>玩家</div>
                 </div>
                 {rooms.map(room =>
-                    <div className='rooms-row' key={room._id} id={room.roomId}>
+                    <div className='rooms-row' key={room._id} id={room._id}>
                         <div className='room-cell room-id'>
-                            {`##${room.roomId}`}
+                            {`${room._id}`}
                         </div>
                         <div className='room-cell'>
                             <div className='room-player'>
@@ -67,7 +69,7 @@ class RoomsBody extends Component {
                             </div>
                         </div>
                         <div className='rooms-cell'>
-                            <Button onClick={() => this.handleEnterRoomClick(room.roomId)}>进入房间</Button>
+                            <Button onClick={() => this.handleEnterRoomClick(room._id)}>进入房间</Button>
                         </div>
                     </div>
                 )}
@@ -76,4 +78,4 @@ class RoomsBody extends Component {
     }
 }
 
-export default RoomsBody;
+export default withRouter(RoomsBody);

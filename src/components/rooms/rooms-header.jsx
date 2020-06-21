@@ -18,13 +18,12 @@ class RoomsHeader extends Component {
 
         axios(
             {
-                method: 'put',
-                url: `${baseUrl}/put_room`,
+                method: 'post',
+                url: `${baseUrl}/create_room`,
                 withCredentials: true
             }).then((resp) => {
-            // this.playerId = Cookies.getItem('playerId');
-            const {roomId}=resp.data.roomInfo;
-            this.props.history.push(`/${roomId}`)
+            const {_id}=resp.data.roomInfo;
+            this.props.history.push(`/${_id}`)
         }).catch((er) => {
             console.error(er)
         })

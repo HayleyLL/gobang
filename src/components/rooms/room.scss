@@ -1,0 +1,89 @@
+.room-view{
+  $border:1px solid #f3e4cf;
+  @mixin disable-select{
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+  display: flex;
+  justify-content: space-evenly;
+
+.sider{
+  width: 400px;
+  background-color: #9dd3e9;
+  padding:0 10px;
+
+  .sider-header{
+    .operation{
+      height:50px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      border-bottom: $border;
+
+      .room-btn:first-child{
+        margin-right: 5px;
+      }
+    }
+
+    .room-info{
+      height:25px;
+      line-height: 25px;
+      vertical-align: middle;
+      margin-bottom:10px;
+    }
+  }
+
+  .select-chess{
+    height:100px;
+    display: flex;
+    justify-content: space-around;
+    border-bottom: $border;
+
+    .selector{
+      height:60px;
+      background-color: #ebfdfd;
+      width:150px;
+
+      .selector-header{
+        height:20px;
+        padding-left: 5px;
+        color: #fff;
+        background-color: black;
+        display: flex;
+        align-items: center;
+
+        span{
+          display: inline-block;
+          width:10px;
+          height: 10px;
+          margin-right: 5px;
+        }
+
+        #black{
+          background-color: #393434;
+        }
+
+        #white{
+          background-color: #fff;
+        }
+      }
+      .selector-body{
+       padding-left:5px;
+        @include disable-select;
+      }
+    }
+  }
+
+  .chat-area{
+    margin: 30px auto auto;
+
+    .message{
+      display: flex;
+
+    }
+  }
+}
+}

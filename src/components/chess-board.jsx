@@ -14,20 +14,11 @@ class ChessBoard extends Component {
         this.chessDropRef = React.createRef();
         this.movCvsRef = React.createRef();
         this.feedBRef = React.createRef();
-        this.playerId = Cookies.getItem("playerId");
-        this.data = [...Array(cells + 1)].map(() => Array(cells + 1).fill(0));
-        this.isBlackTurn = true;
-        this.count = 0;
-        this.state = {
-            blackHolder: "",
-            whiteHolder: "",
-            winner: null,
-        };
     }
 
     drawClickedChess = (chessPos) => {
         const chessDropCtx = this.chessDropRef.current.getContext("2d");
-        const role = this.playerId === this.state.blackHolder ? "black" : "white";
+        const role = this.playerId === this.blackHolder ? "black" : "white";
 
         this.drawer.drawChess(chessDropCtx, chessPos, role);
     };
@@ -35,17 +26,16 @@ class ChessBoard extends Component {
     updateLocalData = (chessPos) => {
         const data = [...this.data];
         const {xNum: column, yNum: row} = chessPos;
-        const {isBlackTurn} = this;
+        const {isBlackTurn, count} = this.state;
         data[row][column] = isBlackTurn ? 1 : 2;
         this.data = data;
-        this.isBlackTurn = !isBlackTurn;
-        this.count += 1;
+        this.setState({isBlackTurn: !isBlackTurn, count:count+1});
     };
 
     handleCvsClick = (e) => {
         const movCvs = this.movCvsRef.current;
-        const {drawer, data, isBlackTurn, playerId} = this;
-        let {winner, blackHolder, whiteHolder} = this.state;
+        const {drawer, data, playerId, blackHolder,whiteHolder} = this;
+        let {winner, isBlackTurn} = this.state;
         const chessPos = drawer.calcChessCoords(movCvs, e);
         const {xNum: column, yNum: row} = chessPos;
         const isClickEligible = this.isClickEligible(data, row, column, winner, isBlackTurn, playerId, blackHolder, whiteHolder);
@@ -81,8 +71,8 @@ class ChessBoard extends Component {
 
     handleMouseMove = (e) => {
         const movCvs = this.movCvsRef.current;
-        const {playerId, drawer, isBlackTurn} = this;
-        const {winner, blackHolder, whiteHolder} = this.state;
+        const {playerId, drawer, blackHolder, whiteHolder} = this;
+        const {winner,isBlackTurn} = this.state;
         const mousePos = drawer.calcMouseCoords(movCvs, e);
         const {x, y} = mousePos;
         const role = blackHolder === playerId ? "black" : "white";
@@ -119,7 +109,7 @@ class ChessBoard extends Component {
                 this.setState({
                     winner,
                 });
-                this.isBlackTurn = isBlackTurn;
+                this.setState( isBlackTurn);
                 this.data = chessData;
                 const chessDropCvs = this.chessDropRef.current;
                 this.drawer.clearChess(chessDropCvs);
@@ -169,11 +159,12 @@ class ChessBoard extends Component {
             const chessDropCvs = this.chessDropRef.current;
             this.drawer.drawAllChess(newChessData, chessDropCvs);
             this.setState({
-                blackHolder,
-                whiteHolder,
                 winner,
             });
-            this.isBlackTurn = isBlackTurn;
+            this.blackHolder=blackHolder;
+            this.whiteHolder=whiteHolder;
+
+                this.setState(isBlackTurn);
             if (winner) {
                 this.feedBackOnWin(winner);
             }
@@ -184,7 +175,6 @@ class ChessBoard extends Component {
 
     render() {
         const size = this.drawer.size;
-        console.log(this.state.feedback);
         return (
             <div>
                 <div
