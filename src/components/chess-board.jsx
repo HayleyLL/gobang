@@ -8,12 +8,13 @@ import {baseUrl} from "../end-point/httpRqst";
 class ChessBoard extends Component {
     constructor(props) {
         super(props);
-        const {cells, padding, cellSize, chessR} = props;
+        const {cells, padding, cellSize, chessR} = props.meta;
         this.drawer = new Drawer(padding, cellSize, cells, chessR);
         this.boardRef = React.createRef();
         this.chessDropRef = React.createRef();
         this.movCvsRef = React.createRef();
         this.feedBRef = React.createRef();
+        this.state = {}
     }
 
     drawClickedChess = (chessPos) => {

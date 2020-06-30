@@ -13,23 +13,8 @@ class RoomsBody extends Component {
     }
 
     handleEnterRoomClick = (roomId) => {
-        axios(
-            {
-                method: 'get',
-                url: `${baseUrl}/rooms/${roomId}`,
-                withCredentials: true
-            }
-        ).then(
-            (resp) => {
-                console.log(resp.data);
-                this.props.history.push(`/rooms/${roomId}`)
-            }
-        )
-    .catch(
-            (er) => {
-                console.error(er);
-            }
-        )
+      console.log(`/rooms/${roomId}`)
+      this.props.history.push(`/rooms/${roomId}`)
     }
 
     componentDidMount() {

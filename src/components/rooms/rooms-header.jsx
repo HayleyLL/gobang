@@ -14,7 +14,6 @@ class RoomsHeader extends Component {
 
     handleCreateRoomClick = (e) => {
         e.preventDefault();
-        e.stopPropagation();
 
         axios(
             {
@@ -22,8 +21,7 @@ class RoomsHeader extends Component {
                 url: `${baseUrl}/create_room`,
                 withCredentials: true
             }).then((resp) => {
-            const {_id}=resp.data.roomInfo;
-            this.props.history.push(`/${_id}`)
+            this.props.history.push(`/rooms/${resp.data._id}`)
         }).catch((er) => {
             console.error(er)
         })
