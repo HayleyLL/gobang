@@ -20,7 +20,7 @@ class Room extends Component {
     this.data = [...Array(this.cells)].map(()=>Array(this.cells).fill(0));
     this.state = {
       roomInfo: {
-        status: meta.PREPARING,
+        gameStatus: meta.PREPARING,
         chessData: this.data,
         isBlackTurn: null,
         blackHolder: null,
@@ -28,6 +28,7 @@ class Room extends Component {
       }
     }
   };
+
 
   componentDidMount() {
     this.getDataAtIntervals()
