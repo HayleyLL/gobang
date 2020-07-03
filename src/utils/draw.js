@@ -1,4 +1,6 @@
-export default function Drawer(padding, cellSize, cells, chessR) {
+export default function Drawer(boardInfo) {
+  const {padding, cellSize, cells, chessR}=boardInfo;
+
   this.padding = padding;
   this.size = cells * cellSize + 2 * padding;
 

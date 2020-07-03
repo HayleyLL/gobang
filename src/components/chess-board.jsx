@@ -1,83 +1,29 @@
 import React, {Component} from "react";
-import axios from "axios";
-import Cookies from "js-cookies";
 import Drawer from "../utils/draw";
-import {checkWinner} from "../utils/judge";
-import {baseUrl} from "../end-point/httpRqst";
+import Cookies from "js-cookies/src/cookies";
 
 class ChessBoard extends Component {
     constructor(props) {
         super(props);
-        const {cells, padding, cellSize, chessR} = props.meta;
-        this.drawer = new Drawer(padding, cellSize, cells, chessR);
+        this.drawer = new Drawer(this.props.meta);
         this.boardRef = React.createRef();
         this.chessDropRef = React.createRef();
         this.movCvsRef = React.createRef();
         this.feedBRef = React.createRef();
-        this.state = {}
-    }
-
-    drawClickedChess = (chessPos) => {
-        const chessDropCtx = this.chessDropRef.current.getContext("2d");
-        const role = this.playerId === this.blackHolder ? "black" : "white";
-
-        this.drawer.drawChess(chessDropCtx, chessPos, role);
-    };
-
-    updateLocalData = (chessPos) => {
-        const data = [...this.data];
-        const {xNum: column, yNum: row} = chessPos;
-        const {isBlackTurn, count} = this.state;
-        data[row][column] = isBlackTurn ? 1 : 2;
-        this.data = data;
-        this.setState({isBlackTurn: !isBlackTurn, count:count+1});
-    };
-
-    handleCvsClick = (e) => {
-        const movCvs = this.movCvsRef.current;
-        const {drawer, data, playerId, blackHolder,whiteHolder} = this;
-        let {winner, isBlackTurn} = this.state;
-        const chessPos = drawer.calcChessCoords(movCvs, e);
-        const {xNum: column, yNum: row} = chessPos;
-        const isClickEligible = this.isClickEligible(data, row, column, winner, isBlackTurn, playerId, blackHolder, whiteHolder);
-
-        if (!isClickEligible) {
-            return;
+        this.playerId = Cookies.getItem("playerId");
+        this.state={
+            feedback:null
         }
-        drawer.clearChess(movCvs);
-        this.drawClickedChess(chessPos);
-        this.updateLocalData(chessPos);
-        if (checkWinner(row, column, data)) {
-            winner = isBlackTurn ? "黑棋" : "白棋";
-        }
-        axios({
-            method: "put",
-            url: `${baseUrl}/put_chess`,
-            withCredentials: true,
-            data: {
-                data: this.data,
-                winner,
-            },
-        }).catch((error) => {
-            console.log(error.response.data.error.message);
-        });
-    };
-
-    isClickEligible = (data, row, column, winner, isBlackTurn, playerId, blackHolder, whiteHolder) => {
-        if (data[row][column] !== 0) {
-            return false;
-        }
-        return this.isMoveEligible(winner, isBlackTurn, playerId, blackHolder, whiteHolder);
     }
 
     handleMouseMove = (e) => {
         const movCvs = this.movCvsRef.current;
-        const {playerId, drawer, blackHolder, whiteHolder} = this;
-        const {winner,isBlackTurn} = this.state;
+        const{drawer}=this;
+        const { blackHolder} = this.props.roomInfo;
         const mousePos = drawer.calcMouseCoords(movCvs, e);
         const {x, y} = mousePos;
-        const role = blackHolder === playerId ? "black" : "white";
-        const isMoveEligible = this.isMoveEligible(winner, isBlackTurn, playerId, blackHolder, whiteHolder);
+        const role = blackHolder === this.playerId ? "black" : "white";
+        const isMoveEligible = this.props.isMoveEligible();
         if (isMoveEligible && drawer.isMouseWithinBoard(x, y)) {
             drawer.movChess(movCvs, x, y, role);
         } else {
@@ -85,49 +31,6 @@ class ChessBoard extends Component {
         }
     };
 
-    isMoveEligible = (winner, isBlackTurn, playerId, blackHolder, whiteHolder) => {
-        if (winner !== null) {
-            return false;
-        }
-
-        if (isBlackTurn) {
-            return playerId === blackHolder
-        } else {
-            return playerId === whiteHolder
-        }
-    };
-
-    //ajax
-    getDataAndRefresh = () => {
-        axios({
-            method: "get",
-            url: `${baseUrl}/room`,
-            withCredentials: true,
-        }).then((response) => {
-            const {winner, chessData, isBlackTurn, count} = response.data;
-
-            if (chessData && count >= this.count) {
-                this.setState({
-                    winner,
-                });
-                this.setState( isBlackTurn);
-                this.data = chessData;
-                const chessDropCvs = this.chessDropRef.current;
-                this.drawer.clearChess(chessDropCvs);
-                this.drawer.drawAllChess(chessData, chessDropCvs);
-
-                if (winner) {
-                    this.feedBackOnWin(winner);
-                }
-            }
-        });
-    };
-
-    getDataAtIntervals = () => {
-        setInterval(() => {
-            if (!this.state.winner) this.getDataAndRefresh();
-        }, 2000);
-    };
 
     feedBackOnWin = (winner) => {
         const feedBackArea = this.feedBRef.current;
@@ -138,44 +41,33 @@ class ChessBoard extends Component {
         feedBackArea.className = "win-feedback";
     };
 
+    refreshChessOnBoard = () => {
+        const {chessData, winner} = this.props.roomInfo;
+        const chessDropCvs = this.chessDropRef.current;
+        this.drawer.clearChess(chessDropCvs);
+        this.drawer.drawAllChess(chessData, chessDropCvs);
+
+        if (winner) {
+            this.feedBackOnWin(winner);
+        }
+
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.roomInfo !== prevProps.roomInfo) {
+                this.refreshChessOnBoard();
+        }
+    }
+
     componentDidMount() {
-        const {drawer, data} = this;
-        drawer.drawBoard(this.boardRef.current);
-
-        // ajax
-        axios({
-            method: "get",
-            url: `${baseUrl}/room`,
-            withCredentials: true,
-        }).then((response) => {
-            const {
-                blackHolder,
-                whiteHolder,
-                chessData,
-                isBlackTurn,
-                winner,
-            } = response.data;
-            const newChessData = chessData || data;
-            this.data = newChessData;
-            const chessDropCvs = this.chessDropRef.current;
-            this.drawer.drawAllChess(newChessData, chessDropCvs);
-            this.setState({
-                winner,
-            });
-            this.blackHolder=blackHolder;
-            this.whiteHolder=whiteHolder;
-
-                this.setState(isBlackTurn);
-            if (winner) {
-                this.feedBackOnWin(winner);
-            }
-        });
-
-        this.getDataAtIntervals();
+        this.drawer.drawBoard(this.boardRef.current);
     }
 
     render() {
         const size = this.drawer.size;
+        const movCvs = this.movCvsRef.current;
+        const chessDropRef=this.chessDropRef.current;
+
         return (
             <div>
                 <div
@@ -204,7 +96,7 @@ class ChessBoard extends Component {
                         width={size}
                         height={size}
                         style={{position: "absolute", top: 0, left: 0, zIndex: 2}}
-                        onClick={this.handleCvsClick}
+                        onClick={(e)=>this.props.handleCvsClick(e,movCvs,chessDropRef)}
                         onMouseMove={this.handleMouseMove}
                     />
                 </div>

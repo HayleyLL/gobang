@@ -13,7 +13,6 @@ class RoomsBody extends Component {
     }
 
     handleEnterRoomClick = (roomId) => {
-      console.log(`/rooms/${roomId}`)
       this.props.history.push(`/rooms/${roomId}`)
     }
 

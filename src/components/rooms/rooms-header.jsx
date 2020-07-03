@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {withRouter} from 'react-router-dom'
 import axios from 'axios';
 import {Button} from 'antd';
-import Cookies from "js-cookies";
 import {baseUrl} from "../../end-point/httpRqst";
 
 

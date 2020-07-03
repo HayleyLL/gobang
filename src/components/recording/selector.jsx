@@ -45,8 +45,9 @@ class Selector extends Component {
             url: `${baseUrl}/rooms/${roomId}/select_chess`,
             data: {
                 roomId,
-                choseBlack
-            }
+                choseBlack,
+            },
+            withCredentials: true,
         })
     }
 

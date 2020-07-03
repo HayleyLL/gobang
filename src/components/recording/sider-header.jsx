@@ -1,7 +1,7 @@
 import React from 'react';
 import {Button} from 'antd';
 
-const SiderHeader = ()=>{
+const SiderHeader = (props)=>{
     return (
         <div className='sider-header'>
            <div className='operation'>
@@ -13,7 +13,7 @@ const SiderHeader = ()=>{
                </Button>
            </div>
             <div className='room-info'>
-                房间号：
+                房间号：{props.roomInfo._id}
             </div>
         </div>
     )
