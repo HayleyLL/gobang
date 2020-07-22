@@ -83,23 +83,6 @@
   .chat-area{
     margin: 30px auto auto;
 
-    .right-sender{
-      background-color: #9dd3e9;
-      padding:5px 12px 5px 12px;
-      border-radius: 6px;
-      position:relative;
-      word-break: break-all;
-      min-height: 2.3em;
-      margin-bottom: 10px;
-      float:right;
-      clear: both;
-    }
-
-    .left-sender{
-      @extend .right-sender;
-      float:left;
-    }
-
     .message{
       display: flex;
 

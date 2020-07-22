@@ -1,11 +1,8 @@
 import {Card} from "antd";
 import React, {useEffect} from "react";
-import Cookies from "js-cookies/src/cookies";
-
+import Message from "./message";
 
 const ChatContent=(props)=>{
-
-    const playerId = Cookies.getItem("playerId");
 
     const messagesEndRef = React.createRef()
 
@@ -17,14 +14,11 @@ const ChatContent=(props)=>{
 
     return(
         <Card title='聊天' bordered={false} style={{width: '100%'}}
-              bodyStyle={{height: '200px', overflow:'auto'}}>
+              bodyStyle={{height: '240px', overflow:'auto'}}>
             {
                 props.messages.map(
                     message => (
-                        <p key={message._id}
-                           className={playerId === message.sender ? 'right-sender' : 'left-sender'}>
-                            {message.message}
-                        </p>
+                        <Message key={message._id} message={message}/>
                     )
                 )
             }
