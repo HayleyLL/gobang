@@ -46,10 +46,10 @@ class RoomsBody extends Component {
                         </div>
                         <div className='room-cell'>
                             <div className='room-player'>
-                                {room.blackHolder || room.whiteHolder || '--'}
+                                {room.blackHolder|| '--'}
                             </div>
                             <div className='room-player'>
-                                {'--'}
+                                {room.whiteHolder ||'--'}
                             </div>
                         </div>
                         <div className='rooms-cell'>

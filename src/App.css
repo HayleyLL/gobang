@@ -12,7 +12,7 @@ body {
 #root {
     height: 100%;
     background-color: #9dd3e9;
-    background-image: url(./assets/0.jpg);
+    background-image: url(./assets/2.jpg);
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
@@ -38,6 +38,7 @@ body {
     transform: translate(-50%, -50%);
     z-index: 3;
     background: linear-gradient(to right, #e66465, transparent 50%, #e66465);
+    font-size: 26px;
     border-radius: 10px;
     -moz-animation-duration: 1s;
     -webkit-animation-duration: 1s;

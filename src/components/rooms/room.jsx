@@ -143,6 +143,7 @@ class Room extends Component {
         })
     }
 
+
     componentDidMount() {
         this._isMounted = true;
         this.getDataAtIntervals()
@@ -154,6 +155,15 @@ class Room extends Component {
         clearInterval(this.intervalID);
     }
 
+    bg=require('../../assets/bg5.jpeg')
+
+    boardStyle={
+        backgroundColor:'#9dd3e9',
+        backgroundImage:`url(${this.bg})`,
+        backgroundRepeat:'no-repeat',
+        backgroundSize: 'cover'
+}
+
     render() {
         return (
             <div className='room-view'>
@@ -162,6 +172,7 @@ class Room extends Component {
                             roomInfo={this.state.roomInfo}
                             handleCvsClick={this.handleCvsClick}
                             isMoveEligible={this.isMoveEligible}
+                            style={this.boardStyle}
                 />
                 <Sider roomInfo={this.state.roomInfo}/>
             </div>

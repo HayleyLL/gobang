@@ -69,7 +69,7 @@ class ChessBoard extends Component {
         const chessDropRef=this.chessDropRef.current;
 
         return (
-            <div>
+            <div style={this.props.style}>
                 <div
                     className="game-drawer"
                     style={{position: "relative", width: size, height: size}}
