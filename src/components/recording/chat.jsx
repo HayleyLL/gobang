@@ -20,20 +20,20 @@ class Chat extends Component {
 
     getMessages = () => {
         const roomId = this.props.match.params.roomId;
-        const {messages}=this.state;
-        const lastMessage=messages[messages.length-1];
-        const lastTime=lastMessage?lastMessage.createdAt:undefined;
+        const {messages} = this.state;
+        const lastMessage = messages[messages.length - 1];
+        const lastTime = lastMessage ? lastMessage.createdAt : undefined;
         axios({
             method: 'get',
             url: `${baseUrl}/rooms/${roomId}/messages`,
-            params:{lastTime},
+            params: {lastTime},
             timeout: 60000
         }).then(
             resp => {
                 this.getMessages();
                 const result = resp.data;
                 this.setState({
-                    messages:[
+                    messages: [
                         ...messages,
                         ...result
                     ]
@@ -42,15 +42,14 @@ class Chat extends Component {
         ).catch(error => {
             if (error.code === 'ECONNABORTED') {
                 console.info(`A timeout happend on url ${error.config.url}`);
-                this.getMessages();
-            }else{
+            } else {
                 console.error(error)
             }
+            this.getMessages();
         })
     }
 
-
-    handleSubmit = () => {
+    submit = () => {
         const {input} = this.state;
         const roomId = this.props.match.params.roomId;
         if (input) {
@@ -71,6 +70,16 @@ class Chat extends Component {
         this.setState({input: ''})
     }
 
+    handleSubmit = () => {
+        this.submit();
+    }
+
+    handleEnter = (e) => {
+        if (e.keyCode === 13) {
+            this.submit();
+        }
+    }
+
 
     componentDidMount() {
         this.getMessages();
@@ -81,7 +90,8 @@ class Chat extends Component {
         return (
             <div className='chat-area'>
                 <ChatContent messages={this.state.messages}/>
-                <MessageSender handleInput={this.handleInput} handleSubmit={this.handleSubmit} input={this.state.input}/>
+                <MessageSender handleInput={this.handleInput} handleSubmit={this.handleSubmit}
+                               handleEnter={this.handleEnter} input={this.state.input}/>
             </div>
         )
     }
