@@ -6,6 +6,8 @@ import ChatContent from "./chat-content";
 import MessageSender from "./message-sender";
 
 class Chat extends Component {
+    _isMounted = false;
+
     constructor(props) {
         super(props);
         this.state = {
@@ -30,14 +32,16 @@ class Chat extends Component {
             timeout: 60000
         }).then(
             resp => {
-                this.getMessages();
-                const result = resp.data;
-                this.setState({
-                    messages: [
-                        ...messages,
-                        ...result
-                    ]
-                })
+                if (this._isMounted) {
+                    this.getMessages();
+                    const result = resp.data;
+                    this.setState({
+                        messages: [
+                            ...messages,
+                            ...result
+                        ]
+                    })
+                }
             }
         ).catch(error => {
             if (error.code === 'ECONNABORTED') {
@@ -82,7 +86,12 @@ class Chat extends Component {
 
 
     componentDidMount() {
+        this._isMounted = true;
         this.getMessages();
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
     }
 
 
