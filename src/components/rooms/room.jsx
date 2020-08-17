@@ -25,23 +25,23 @@ class Room extends Component {
         this.cells = 18;
         this.drawer = new Drawer(this.boardInfo);
         this.data = [...Array(this.cells)].map(() => Array(this.cells).fill(0));
-        this.count=0;
+        this.count = 0;
         this.state = {
             roomInfo: {
                 _id: null,
                 status: meta.PREPARING,
                 chessData: this.data,
-                isBlackTurn: true,
                 blackHolder: null,
                 whiteHolder: null,
                 winner: null,
             }
         }
+        this.isBlackTurn= true;
     };
 
     isMoveEligible = () => {
         //isBlckTurn并没有在更新本地数据后立即变化
-        const {winner, isBlackTurn, blackHolder, whiteHolder} = this.state.roomInfo;
+        const {winner, blackHolder, whiteHolder} = this.state.roomInfo;
         if (this.state.roomInfo.status !== PLAYING) {
             return false;
         }
@@ -50,7 +50,7 @@ class Room extends Component {
             return false;
         }
 
-        if (isBlackTurn) {
+        if (this.isBlackTurn) {
             return this.playerId === blackHolder
         } else {
             return this.playerId === whiteHolder
@@ -73,12 +73,12 @@ class Room extends Component {
 
     updateLocalData = (chessPos) => {
         const {xNum: column, yNum: row} = chessPos;
-        let {chessData, isBlackTurn} = this.state.roomInfo;
+        let {chessData} = this.state.roomInfo;
         const data = [...chessData];
-        data[row][column] = isBlackTurn ? 1 : 2;
+        data[row][column] = this.isBlackTurn ? 1 : 2;
         this.count += 1;
+        this.isBlackTurn=!this.isBlackTurn;
         this.setState({
-            isBlackTurn: !isBlackTurn,
             chessData: data
         })
         return data;
@@ -86,7 +86,7 @@ class Room extends Component {
 
     handleCvsClick = (e, movCvs, chessDropRef) => {
         //e.target就是movCvs？
-        let {chessData, winner, isBlackTurn} = this.state.roomInfo;
+        let {chessData, winner} = this.state.roomInfo;
         const chessPos = this.drawer.calcChessCoords(movCvs, e);
         const {xNum: column, yNum: row} = chessPos;
         const isClickEligible = this.isClickEligible(chessData, row, column);
@@ -94,12 +94,12 @@ class Room extends Component {
         if (!isClickEligible) {
             return;
         }
-        this.drawer.clearChess(movCvs);
-        this.drawClickedChess(chessPos, chessDropRef);
         const data = this.updateLocalData(chessPos);
         if (checkWinner(row, column, chessData)) {
-            winner = isBlackTurn ? "黑棋" : "白棋";
+            winner = this.isBlackTurn ? "黑棋" : "白棋";
         }
+        this.isBlackTurn=!this.isBlackTurn;
+        this.setState({...this.state.roomInfo});
         axios({
             method: "put",
             url: `${baseUrl}/rooms/${this.state.roomInfo._id}/put_chess`,
@@ -108,8 +108,11 @@ class Room extends Component {
                 chessData: data,
                 winner,
             },
+        }).then(()=>{
+            this.drawer.clearChess(movCvs);
+            this.drawClickedChess(chessPos, chessDropRef);
         }).catch((error) => {
-            console.error(error.response.data);
+            console.error( error);
         });
     };
 
@@ -135,14 +138,15 @@ class Room extends Component {
             const newChessData = chessData || this.data;
             //在卸载组件后就不能更新组件了,否则报错
             if (this._isMounted && count >= this.count) {
-                this.count=count;
+                this.count = count;
+                const {isBlackTurn,...rest}=response.data;
+                this.isBlackTurn=isBlackTurn;
                 this.setState({
-                    roomInfo: {...response.data, chessData: newChessData}
+                    roomInfo: {...rest, chessData: newChessData}
                 });
             }
         })
     }
-
 
     componentDidMount() {
         this._isMounted = true;
@@ -155,14 +159,14 @@ class Room extends Component {
         clearInterval(this.intervalID);
     }
 
-    bg=require('../../assets/bg5.jpeg')
+    bg = require('../../assets/bg5.jpeg')
 
-    boardStyle={
-        backgroundColor:'#9dd3e9',
-        backgroundImage:`url(${this.bg})`,
-        backgroundRepeat:'no-repeat',
+    boardStyle = {
+        backgroundColor: '#9dd3e9',
+        backgroundImage: `url(${this.bg})`,
+        backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover'
-}
+    }
 
     render() {
         return (
@@ -181,3 +185,4 @@ class Room extends Component {
 }
 
 export default Room;
+
