@@ -24,7 +24,7 @@ class Room extends Component {
         }
         this.cells = 18;
         this.drawer = new Drawer(this.boardInfo);
-        this.data = [...Array(this.cells)].map(() => Array(this.cells).fill(0));
+        this.data = [...Array(this.cells+1)].map(() => Array(this.cells+1).fill(0));
         this.count = 0;
         this.state = {
             roomInfo: {
@@ -36,11 +36,10 @@ class Room extends Component {
                 winner: null,
             }
         }
-        this.isBlackTurn= true;
+        this.isBlackTurn = true;
     };
 
     isMoveEligible = () => {
-        //isBlckTurn并没有在更新本地数据后立即变化
         const {winner, blackHolder, whiteHolder} = this.state.roomInfo;
         if (this.state.roomInfo.status !== PLAYING) {
             return false;
@@ -49,7 +48,6 @@ class Room extends Component {
         if (winner !== null) {
             return false;
         }
-
         if (this.isBlackTurn) {
             return this.playerId === blackHolder
         } else {
@@ -58,10 +56,10 @@ class Room extends Component {
     };
 
     isClickEligible = (data, row, column) => {
-        if (data[row][column] !== 0) {
-            return false;
+        if (this.isMoveEligible()) {
+            console.log(data,row,column)
+            return data[row][column] === 0
         }
-        return this.isMoveEligible();
     }
 
     drawClickedChess = (chessPos, chessDropRef) => {
@@ -77,7 +75,7 @@ class Room extends Component {
         const data = [...chessData];
         data[row][column] = this.isBlackTurn ? 1 : 2;
         this.count += 1;
-        this.isBlackTurn=!this.isBlackTurn;
+        this.isBlackTurn = !this.isBlackTurn;
         this.setState({
             chessData: data
         })
@@ -96,23 +94,22 @@ class Room extends Component {
         }
         const data = this.updateLocalData(chessPos);
         if (checkWinner(row, column, chessData)) {
-            winner = this.isBlackTurn ? "黑棋" : "白棋";
+            winner = this.isBlackTurn ? "白棋" : "黑棋";
         }
-        this.isBlackTurn=!this.isBlackTurn;
         this.setState({...this.state.roomInfo});
         axios({
-            method: "put",
+            method: "post",
             url: `${baseUrl}/rooms/${this.state.roomInfo._id}/put_chess`,
             withCredentials: true,
             data: {
                 chessData: data,
                 winner,
             },
-        }).then(()=>{
+        }).then(() => {
             this.drawer.clearChess(movCvs);
             this.drawClickedChess(chessPos, chessDropRef);
         }).catch((error) => {
-            console.error( error);
+            console.error(error);
         });
     };
 
@@ -139,8 +136,8 @@ class Room extends Component {
             //在卸载组件后就不能更新组件了,否则报错
             if (this._isMounted && count >= this.count) {
                 this.count = count;
-                const {isBlackTurn,...rest}=response.data;
-                this.isBlackTurn=isBlackTurn;
+                const {isBlackTurn, ...rest} = response.data;
+                this.isBlackTurn = isBlackTurn;
                 this.setState({
                     roomInfo: {...rest, chessData: newChessData}
                 });

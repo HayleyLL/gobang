@@ -33,8 +33,8 @@ const SiderHeader = (props) => {
             handleReturn();
         } else {
             axios({
-                url: `${baseUrl}${roomId}/giveIn`,
-                method: 'put'
+                url: `${baseUrl}${roomId}/exit`,
+                method: 'post'
             }).then(() => {
                 handleReturn()
             }).catch(er => console.error(er))

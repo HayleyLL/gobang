@@ -27,7 +27,7 @@ class Chat extends Component {
         const lastTime = lastMessage ? lastMessage.createdAt : 0;
         axios({
             method: 'get',
-            url: `${baseUrl}/rooms/${roomId}/messages`,
+            url: `${baseUrl}/rooms/:${roomId}/messages`,
             params: {lastTime},
             timeout: 60000
         }).then(
@@ -59,13 +59,11 @@ class Chat extends Component {
         if (input) {
             axios(
                 {
-                    url: `${baseUrl}/message`,
+                    url: `${baseUrl}/rooms/:${roomId}/messages`,
                     method: 'post',
                     withCredentials: true,
                     data: {
-                        message: input,
-                        roomId,
-                    },
+                        message: input,                    },
                 }
             ).catch(error => {
                 console.error(error)

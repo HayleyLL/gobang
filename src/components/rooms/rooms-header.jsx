@@ -17,7 +17,7 @@ class RoomsHeader extends Component {
         axios(
             {
                 method: 'post',
-                url: `${baseUrl}/create_room`,
+                url: `${baseUrl}/rooms`,
                 withCredentials: true
             }).then((resp) => {
             this.props.history.push(`/rooms/${resp.data._id}`)
