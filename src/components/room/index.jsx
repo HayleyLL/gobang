@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import ChessBoard from "../chess-board";
 import Sider from "../recording/sider";
-import './room.scss';
+import './index.scss';
 import axios from "axios";
 import {baseUrl} from "../../end-point/httpRqst";
 import * as meta from "../../meta";
@@ -10,7 +10,7 @@ import Drawer from "../../utils/draw";
 import {PLAYING} from "../../meta";
 import Cookies from "js-cookies/src/cookies";
 
-class Room extends Component {
+class Index extends Component {
     _isMounted = false;
 
     constructor(props) {
@@ -181,5 +181,5 @@ class Room extends Component {
     }
 }
 
-export default Room;
+export default Index;
 

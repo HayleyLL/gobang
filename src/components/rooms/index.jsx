@@ -1,14 +1,13 @@
 import React, {Component} from 'react';
 import RoomsHeader from "./rooms-header";
-import './rooms.scss';
+import './index.scss';
 import RoomsBody from "./rooms-body";
 
-class Rooms extends Component {
+class Index extends Component {
     constructor(props) {
         super(props);
         this.state = {};
     }
-
 
     render() {
         return (
@@ -20,4 +19,4 @@ class Rooms extends Component {
     }
 }
 
-export default Rooms;
+export default Index;

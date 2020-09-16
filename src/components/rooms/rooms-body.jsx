@@ -3,17 +3,13 @@ import axios from "axios";
 import {Button} from 'antd'
 import {baseUrl} from "../../end-point/httpRqst";
 import {withRouter} from "react-router-dom";
+import {fetch_rooms} from '../../redux/actions/actionCreators'
+import {connect} from "react-redux";
 
 class RoomsBody extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            rooms: [],
-        }
-    }
 
     handleEnterRoomClick = (roomId) => {
-      this.props.history.push(`/rooms/${roomId}`)
+        this.props.history.push(`/rooms/${roomId}`)
     }
 
     componentDidMount() {
@@ -24,14 +20,14 @@ class RoomsBody extends Component {
                 withCredentials: true
             }
         ).then((resp) => {
-            this.setState({rooms: resp.data})
+            this.props.dispatchRooms(resp.data)
         }).catch((er) => {
-            console.log(er);
+            console.error(er);
         })
     }
 
     render() {
-        const {rooms} = this.state;
+        const {rooms} = this.props;
 
         return (
             <div className='rooms-body'>
@@ -46,10 +42,10 @@ class RoomsBody extends Component {
                         </div>
                         <div className='room-cell'>
                             <div className='room-player'>
-                                {room.blackHolder|| '--'}
+                                {room.blackHolder || '--'}
                             </div>
                             <div className='room-player'>
-                                {room.whiteHolder ||'--'}
+                                {room.whiteHolder || '--'}
                             </div>
                         </div>
                         <div className='rooms-cell'>
@@ -62,4 +58,18 @@ class RoomsBody extends Component {
     }
 }
 
-export default withRouter(RoomsBody);
+
+const mapStateToProps = (state) => {
+    return {
+        rooms: state.rooms
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        //向action creator中传入参数，调用fetchRooms时就传入相应数据
+        dispatchRooms: rooms => dispatch(fetch_rooms(rooms))
+    }
+}
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(RoomsBody));

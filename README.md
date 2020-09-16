@@ -4,7 +4,7 @@ or<br>
 `npm start`<br>
 
 ## View
-### 1. Rooms
+### 1. Index
 
 ![房间列表](./IMG/rooms.png)
 
@@ -16,6 +16,6 @@ or<br>
 
 ![胜利](./IMG/win.png)
 
-### 4. Chat Room and Chess Selector
+### 4. Chat Index and Chess Selector
 
 ![选棋和聊天室](./IMG/sider.png)

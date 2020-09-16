@@ -24,7 +24,7 @@ class Chat extends Component {
         const roomId = this.props.match.params.roomId;
         const {messages} = this.state;
         const lastMessage = messages[messages.length - 1];
-        const lastTime = lastMessage ? lastMessage.createdAt : 0;
+        const lastTime = lastMessage ? lastMessage.createdAt : null;
         axios({
             method: 'get',
             url: `${baseUrl}/rooms/:${roomId}/messages`,
